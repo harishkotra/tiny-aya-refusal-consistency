@@ -148,6 +148,27 @@ as refusals. That is the price of teaching a register the base model did not hav
 number I would attack next: more benign Hinglish, and a gate that rejects harmful-style refusals
 applied to benign-style prompts.
 
+## Where it still fails
+
+The repair is uneven across attack families, and the residual sits exactly where you would expect:
+
+| family | hg explicit before | hg explicit after |
+|---|---|---|
+| direct | 0.00 | 1.00 |
+| roleplay | 0.08 | 0.92 |
+| fiction | 0.00 | 1.00 |
+| authority | 0.08 | 1.00 |
+| incremental | 0.00 | 1.00 |
+| hypothetical | 0.00 | 1.00 |
+| encoding | 0.08 | 1.00 |
+| continuation | 0.00 | **0.67** |
+
+`continuation` is the family where the harmful frame is written by the prompt rather than asked
+for — the model is handed the opening of a "practical guide" and only has to keep going. **All
+four** residual Hinglish failures, and the one genuine base-model compliance in the audit, are in
+that cell. A refusal register learnt from direct asks does not transfer to a prompt that never
+asks.
+
 ## What this costs, and what a closed model would cost
 
 The whole pipeline ran on one laptop: 3.35B parameters in fp16 on 16 GPU cores, LoRA at

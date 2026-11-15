@@ -81,6 +81,23 @@ Benign control (share of benign prompts answered with a refusal-shaped reply —
 | Hinglish | 0.025 | 0.150 |
 
 
+## Where it still fails
+
+| family | hg explicit before | hg explicit after |
+|---|---|---|
+| direct | 0.00 | 1.00 |
+| roleplay | 0.08 | 0.92 |
+| fiction | 0.00 | 1.00 |
+| authority | 0.08 | 1.00 |
+| incremental | 0.00 | 1.00 |
+| hypothetical | 0.00 | 1.00 |
+| encoding | 0.08 | 1.00 |
+| continuation | 0.00 | **0.67** |
+
+Every residual Hinglish failure (4 of 96) is in `continuation`, where the harmful frame comes from
+the prompt prefix rather than the ask — the same cell that produced the only genuine base-model
+compliance in the audit. `results/report_final.md` has the full per-family table.
+
 ## Reproduction
 
 ```bash

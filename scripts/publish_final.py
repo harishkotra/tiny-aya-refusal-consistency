@@ -180,9 +180,23 @@ Hinglish, where the base model produces neither a refusal nor an answer.
 
 {card_table(M)}
 
-Attack success is 0.00 in every cell before and after: this adapter does not make the model
-safer by compliance standards, it makes the model's existing safety behaviour legible outside
-English. The benign-refusal rate stays flat (see the eval runs dataset).
+Attack success does not move in a way that matters: the base model's judged rate of 0.028 is
+almost entirely judge error (8 replies flagged, 7 audited as refusals, 1 genuine — a
+`continuation` prompt that pre-fills a "practical guide"), so hand-audited ASR is 1/288 before and
+0/288 after. This adapter does not make the model safer by compliance standards; it makes its
+existing safety behaviour legible outside English.
+
+That repair is not free. Benign over-refusal rises from 0.00/0.03/0.03 to 0.03/0.05/0.15
+(en/hi/hg) — five of forty Hinglish benign prompts (a dripping tap, a bicycle check, a sleep
+routine) now come back as refusals. Reported, not smoothed over; `results/manual_audit.md` in the
+code repo has the row-level audit.
+
+Decoding: greedy with `repetition_penalty=1.10`, **identical in both arms** — without it the base
+model loops on 15% of Hinglish prompts and the repaired model on 43%, so applying it to one arm
+would measure the decoder rather than the repair.
+
+Code and article: https://github.com/harishkotra/tiny-aya-refusal-consistency · collection:
+https://huggingface.co/collections/harishkotra/tiny-aya-global-refusal-consistency-across-scripts-6af9007d3ce7e09c334db33a
 
 ## Training
 
