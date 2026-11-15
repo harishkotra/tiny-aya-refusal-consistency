@@ -415,8 +415,11 @@ rather than a limitation, the report is reproducible from the published eval set
 - **Combined landing collection** (mixed):
   https://huggingface.co/collections/harishkotra/tiny-aya-global-refusal-consistency-across-scripts-6af9007d3ce7e09c334db33a
 - **GitHub repo**: https://github.com/harishkotra/tiny-aya-refusal-consistency
-- **Write-up**: the repo `README.md` and `article.md` (HF articles are gated behind PRO /
-  `blog-explorers` membership; the form permits the README fallback).
+- **Write-up**: `article_hf.md` in the repo is paste-ready for `huggingface.co/new-blog` (title,
+  subtitle, tags and body separated). Publishing there needs an active PRO subscription or a Team
+  org with a write role — this account has neither (`isPro: false`), so the form's HF-article field
+  takes **[FILL: HF article URL if published]** and the sanctioned fallback is the repo write-up:
+  https://github.com/harishkotra/tiny-aya-refusal-consistency/blob/main/article.md
 - **Demo / Space, video / slides**: [FILL if you recorded one]
 
 ## Documentation and reproduction

@@ -3,6 +3,11 @@
 *A measurement and a repair of refusal consistency on Cohere Labs' Tiny Aya Global, built with
 CuratorKIT and SafeTune on one 64 GB Mac.*
 
+> **Content warning.** This post quotes harmful request text and fragments of model output that
+> begin to answer it — firearms modification, explosives, ransomware, forged identity documents,
+> toxic gas, phishing and money laundering. Quoted fragments are short and non-operational;
+> full generations are in the published eval dataset.
+
 ## Summary
 
 Tiny Aya Global 3.35B refuses harmful requests. It does not refuse them *in the language they are
