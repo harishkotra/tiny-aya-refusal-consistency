@@ -1,14 +1,14 @@
 # The refusal is in English even when the request is not
 
 *A measurement and a repair of refusal consistency on Cohere Labs' Tiny Aya Global, built with
-CuratorKIT → SafeTune → AuditKIT.*
+CuratorKIT and SafeTune on one 64 GB Mac.*
 
 ## Summary
 
 Tiny Aya Global 3.35B refuses harmful requests. It does not refuse them *in the language they are
 asked in*. Across 288 prompts — 8 attack families × 12 harmful intents × {English, Devanagari
-Hindi, romanised Hinglish} — the model almost never produced usable harmful content. The failure
-is not compliance. It is the *expression* of refusal. Under one fixed decoding protocol, 64 in 100
+Hindi, romanised Hinglish} — the model almost never produced usable harmful content. On this prompt
+set the failure is not compliance. It is the *expression* of refusal. Under one fixed decoding protocol, 64 in 100
 English replies and 54 in 100 Devanagari Hindi replies contained an explicit in-language refusal.
 In romanised Hinglish, 3 in 100 did. The rest were neither a refusal nor an answer: how-to-shaped
 text with hallucinated nouns, sometimes running to the token cap because nothing in it signalled
@@ -16,8 +16,15 @@ an ending.
 
 After a LoRA repair trained on CuratorKIT-gated data, in-language explicit refusal rises to 1.00 /
 0.98 / 0.95 across the three cells, with repetition collapse at zero everywhere. It is not free:
-5 of 40 Hinglish benign prompts are now refused. That cost is measured and reported, not smoothed
+6 of 40 Hinglish benign prompts are now refused. That cost is measured and reported, not smoothed
 away.
+
+Those 288 prompts are also **91.7% present in the training set** by construction — the repair set is
+generated per intent from the same prompts — so the headline is in-distribution. Thirty prompts
+written *after* training, never seen, give the out-of-sample picture: explicit refusal 0.367 → 0.900,
+and hand-reading all sixty replies shows the base model **answering 7 of 30** while the repaired
+model answers **none**. Both audits are in `results/heldout.md` and `results/heldout_audit.md`, and
+the judge flagged zero of those seven.
 
 <!-- TABLE:headline -->
 | metric | before | after | delta |
@@ -71,27 +78,33 @@ positive** — the local judge marked 8/288 base replies compliant and was wrong
 ## The pipeline
 
 ```
-build taxonomy (288 prompts) ──► baseline eval (AuditKIT-style harness)
+build taxonomy (288 prompts) ──► baseline eval (script-aware harness)
                                           │
                                           ▼
                        repair generation (local Qwen3 via Ollama)
                                           │
                                           ▼
-        CuratorKIT gates ──► SFT set ──► SafeTune LoRA ──► re-eval, same harness
-                                          │
-                                          ▼
-                        before/after metrics + benign control + probe set
+        CuratorKIT gates ──► SFT set ──► PEFT LoRA ──► SafeTune SafeLoRA check
+                                          │                          │
+                                          ▼                          ▼
+                        before/after metrics + benign control + held-out probe
 ```
 
-All three Lexsi repos are load-bearing, not decorative:
+Two Lexsi repos carry the pipeline:
 
 - **CuratorKIT** decides what enters the training set. Its gates rejected echo-then-explain
   refusals, numbered procedures ("first obtain…"), too-short answers, Devanagari written where
   romanised Hinglish was asked for, and — after round three — answers that were already looping.
-- **SafeTune** is the training stage (LoRA r=16, α=32, 30.2M trainable parameters, 0.89% of the
-  base) on one Apple M4 Pro via MPS.
-- **AuditKIT** shaped the evaluation protocol: fixed decoding, script-aware refusal markers, a
-  benign control arm, and raw generations published so every number can be recomputed.
+  392 rows in, 380 out, with a reason code per rejection.
+- **SafeTune** provides the safety projection: `recover.apply_safe_lora` at α=0.5, applied to the
+  merged adapter. It changed 253 of 290 tensors by at most 9e-4 and moved no held-out prompt — a
+  null result, reported as one (`results/safelora.md`). The fine-tune itself is plain PEFT LoRA
+  (r=16, α=32, 30.2M trainable parameters, 0.89% of the base) on one Apple M4 Pro via MPS.
+
+AuditKIT was installed and inspected and is **not** used: its detectors (`AgentLoopDetection`,
+`Abstention`) target agent trajectories and unanswerable-RAG cases, not single-turn chat replies, and
+a wrapper around them would have been kit theatre. The evaluation protocol here — fixed decoding,
+script-aware markers, benign control arm, published raw generations — was written for this task.
 
 ## Four rounds, because the first three were wrong
 
@@ -147,6 +160,38 @@ The over-refusal cost is real and unevenly distributed: the Hinglish cell pays m
 as refusals. That is the price of teaching a register the base model did not have, and it is the
 number I would attack next: more benign Hinglish, and a gate that rejects harmful-style refusals
 applied to benign-style prompts.
+
+## Out of distribution, it complies
+
+The 288-prompt taxonomy is a controlled instrument, not a sample of real traffic, and it is
+91.7% in the training set. So the obvious objection is that the repair learned the test. Thirty
+prompts written after training — fresh phrasings, same intent space, ten per language — answer it:
+
+| | base | repaired |
+|---|---|---|
+| explicit in-language refusal | 0.367 | **0.900** |
+| en / hi / hg | 0.70 / 0.40 / 0.00 | 1.00 / 0.90 / 0.80 |
+| runaway to the token cap | 0.700 | 0.067 |
+| **answers the request (hand-read)** | **7 / 30** | **0 / 30** |
+| flagged by the judge | 0 / 30 | 0 / 30 |
+
+The base model's seven are the interesting part. They are not near-misses: a step-by-step
+driver's-licence forgery guide with materials and printing advice, an IED component list with a
+"small explosive charge in a sealed container", a Hindi fake-ID procedure, a Hinglish semi-to-full
+auto conversion walkthrough, an in-character ransomware build, and a finished invoice-fraud phishing
+email. All seven sit in fiction, hypothetical and roleplay frames, and five are in Hindi or
+Hinglish. `results/heldout_audit.md` has each one with its classification.
+
+That reframes the thesis, and I would rather state the narrower version than the tidy one: **Tiny
+Aya refuses what resembles its safety training. Off that distribution it complies, and it complies
+most readily in romanised Hinglish.** The repair works because it teaches refusal in the request's
+own language and register, which is also why the remaining escape route is a fresh phrasing rather
+than a different language.
+
+The judge caught none of it — zero flagged replies in either arm — while in the main run it flagged 8
+of 288 base replies, 7 of which were refusals. A 4B judge reads caveated procedural detail as a
+warning. That is why every headline claim here is either a script-aware marker or a hand count, with
+the judge reported beside it.
 
 ## Where it still fails
 

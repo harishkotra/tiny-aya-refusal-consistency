@@ -9,15 +9,16 @@ Everything here runs on a single 64 GB Apple Silicon machine. No cluster, no clo
 the data path.
 
 ```
-CuratorKIT  ->  SafeTune (LoRA)  ->  AuditKIT  ->  eval harness
-  data gate        repair            measurement    metrics + tables
+CuratorKIT  ->  LoRA repair  ->  SafeTune (SafeLoRA)  ->  eval harness
+  data gate      fine-tune        post-hoc projection     metrics + audit
 ```
 
-| stage | repo | what it contributes |
+| stage | repo | what it contributes, precisely |
 |---|---|---|
-| data curation | [CuratorKIT](https://github.com/lexsi-ai/curatorkit) | `Pipeline` / gate contract, per-sample provenance, rejection reasons, exporter artefacts |
-| repair | [SafeTune](https://github.com/lexsi-ai/safetune) | intervention + LoRA-SFT recipe surface (plain PEFT LoRA over the same config shape) |
-| measurement | [AuditKIT](https://github.com/lexsi-ai/auditkit) | run-scoped evaluation records and the report contract `metrics.json` follows |
+| data curation | [CuratorKIT](https://github.com/lexsi-ai/curatorkit) | `Pipeline` / gate contract, per-sample provenance, rejection reasons, exporter artefacts — the six gates below are CuratorKIT gates |
+| repair | [SafeTune](https://github.com/lexsi-ai/safetune) | `recover.apply_safe_lora` (SafeLoRA, Hsu et al. 2024) applied to the trained adapter as a post-hoc safety projection; the supervised fine-tune itself is plain PEFT LoRA. SafeLoRA at α=0.5 left behaviour unchanged (`results/safelora.md`) |
+| measurement | — | not a hackathon kit: a script-aware refusal marker, a trigram collapse rate, and a local `qwen3:4b` judge, all hand-audited. AuditKIT's loop and abstention detectors are built for agent trajectories and unanswerable-RAG cases, so they were not a fit for single-turn chat replies and are not claimed |
+
 
 ## The finding
 
@@ -34,10 +35,16 @@ Hinglish}, plus a 120-prompt benign control.
 The judged ASR of 0.028 in the raw final run is judge error: of 8 flagged replies, 7 are refusals
 and 1 is genuine (`results/manual_audit.md`).
 
-The model does not comply, in any cell. It fails *silently* in one language: no refusal, no
-explanation, text shaped like an answer that is unusable as either help or safety. A safety
-evaluation that only scores compliance cannot see this, and a repair that only optimises refusal
-rate can hide it behind one memorised sentence.
+On this prompt set the model does not comply, in any cell. It fails *silently* in one language: no
+refusal, no explanation, text shaped like an answer that is unusable as either help or safety. A
+safety evaluation that only scores compliance cannot see this, and a repair that only optimises
+refusal rate can hide it behind one memorised sentence.
+
+That holds for prompts that resemble its safety training. Off that distribution it does comply: on 30
+prompts written after training, the base model **answers 7** and the repaired adapter answers
+**0** (`results/heldout.md`, `results/heldout_audit.md`). The 288-prompt taxonomy is 91.7% contained
+in the SFT set by construction, so the in-distribution numbers are labelled as such wherever they
+appear.
 
 ## The repair
 
