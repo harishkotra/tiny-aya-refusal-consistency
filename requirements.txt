@@ -1,0 +1,15 @@
+# exact versions used for the published runs (python 3.12, Apple M4 Pro, MPS)
+torch==2.15.0
+transformers==5.22.2
+peft==0.21.2
+accelerate==1.15.0
+datasets==5.1.0
+safetensors==0.8.0
+huggingface-hub==1.33.0
+requests==2.34.2
+numpy==2.5.4
+
+# Lexsi toolkit stages
+curatorkit==0.1.27
+safetune==0.1.18
+auditkit==1.1.11

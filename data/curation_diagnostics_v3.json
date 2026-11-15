@@ -1,0 +1,12 @@
+{
+  "kept": 392,
+  "by_kind": {
+    "harmful": 276,
+    "benign": 116
+  },
+  "by_lang": {
+    "en": 134,
+    "hi": 135,
+    "hg": 123
+  }
+}
