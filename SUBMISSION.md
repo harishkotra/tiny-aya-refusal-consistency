@@ -11,12 +11,17 @@ email, problem-statement numbers, teammate details); everything else is measured
 
 ## Track(s) and problem statement(s)
 
-- **Track 2a** — red-teaming / attack measurement. Problem statement: [FILL: number]
-- **Track 2b** — over-refusal and deployment behaviour. Problem statement: [FILL: number]
+- **Track 2a** — AI Safety and Red Teaming. Problem statement: [FILL: number].
+  Sub-areas selected on the form (max 2): **Multilingual and code-mixed safety**,
+  **Adversarial and safety evaluation sets**.
+- **Track 2b** — AI Safety and Correction. Problem statement: [FILL: number].
+  Sub-area selected (max 2): **Safety-preserving fine-tuning**.
 
 Both are covered by one artefact set: `T2a` through the 288-prompt attack taxonomy and ASR /
-explicit-refusal measurement; `T2b` through the 120-prompt benign control set and the reported
-over-refusal cost.
+explicit-refusal measurement; `T2b` through the safety-restoring LoRA repair, the 120-prompt benign
+control set and the reported over-refusal cost. Not claimed: multi-turn audits (probing only, 4-turn
+ladders, no systematic audit), unlearning, inference-time steering, circuit-level interventions,
+compression, tamper resistance, abstention detection.
 
 ## Title + one-line claim
 
